@@ -2,7 +2,6 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 25
-//    buildToolsVersion "25.0.3"
 
     defaultConfig {
         applicationId "com.github.lzyzsd.jsbridge.example"
@@ -20,8 +19,8 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile project(':library')
-    compile 'com.android.support:appcompat-v7:25.3.1'
-    compile 'com.google.code.gson:gson:2.3.1'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(':library')
+    implementation 'com.android.support:appcompat-v7:25.3.1'
+    implementation 'com.google.code.gson:gson:2.3.1'
 }
