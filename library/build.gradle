@@ -1,15 +1,17 @@
-apply plugin: 'com.android.library'
-
-version = "1.0.0"
+plugins {
+    id 'com.android.library'
+    id 'digital.wup.android-maven-publish' version '3.6.2'
+}
 
 android {
-    compileSdkVersion 25
+    compileSdkVersion 28
 
     defaultConfig {
+        //noinspection MinSdkTooLow
         minSdkVersion 9
-        targetSdkVersion 25
+        targetSdkVersion 28
         versionCode 1
-        versionName version
+        versionName "1.1.0-SNAPSHOT"
     }
     buildTypes {
         release {
@@ -17,35 +19,25 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    lintOptions { // 消除lint警告
-        abortOnError false
-        checkReleaseBuilds false
-    }
 }
 
 dependencies {
 }
 
+publishing {
+    repositories {
+        maven {
+            name = "test"
+            url = "$buildDir/repo"
+        }
+    }
 
-//def siteUrl = 'https://github.com/lzyzsd/JsBridge'
-//def gitUrl = 'https://github.com/lzyzsd/JsBridge.git'
-//apply plugin: 'com.github.dcendents.android-maven'
-//group = "com.github.lzyzsd.jsbridge"
-//task sourcesJar(type: Jar) {
-//    from android.sourceSets.main.java.srcDirs
-//    classifier = 'sources'
-//}
-//task javadoc(type: Javadoc) {
-//    source = android.sourceSets.main.java.srcDirs
-//    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-//}
-//task javadocJar(type: Jar, dependsOn: javadoc) {
-//    classifier = 'javadoc'
-//    from javadoc.destinationDir
-//}
-//artifacts {
-//    archives javadocJar
-//    archives sourcesJar
-//}
-//Properties properties = new Properties()
-//properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    publications {
+        // defaultAar 是自己取的，只做区别用
+        defaultAar(MavenPublication) {
+            from components.android
+            groupId "com.github.dtdream"
+            version android.defaultConfig.versionName
+        }
+    }
+}
