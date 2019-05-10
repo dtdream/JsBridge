@@ -8,6 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
+import android.widget.Toast;
 
 import com.github.lzyzsd.jsbridge.BridgeHandler;
 import com.github.lzyzsd.jsbridge.BridgeWebView;
@@ -98,7 +99,12 @@ public class AppActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         try {
-            webView.callHandler(JS_MENU_INTERFACE, new JSONObject().put("selectedId", item.getItemId()).toString(), null);
+            webView.callHandler(JS_MENU_INTERFACE, new JSONObject().put("selectedId", item.getItemId()).toString(), new CallBackFunction() {
+                @Override
+                public void onCallBack(String s) {
+                    Toast.makeText(AppActivity.this, "receive js callback" + s, Toast.LENGTH_SHORT).show();
+                }
+            });
         } catch (JSONException e) {
             e.printStackTrace();
             return super.onOptionsItemSelected(item);

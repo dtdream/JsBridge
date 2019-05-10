@@ -61,5 +61,8 @@ _invokeWhenReady(function() {
     _log("jsMenuCallback", data)
     var event = new CustomEvent('appMenuSelected', { detail: JSON.parse(data) });
     document.dispatchEvent(event);
+    if (responseCallback) {
+      responseCallback("js: success")
+    }
   })
 })
