@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css'>
+    <title>Small App</title>
+  </head>
+  <body>
+    <ul>
+      <li>
+        <h4>Listen for the WebViewJavascriptBridgeReady event, ensuring that the "earlier triggered" event takes effect</h4>
+      </li>
+      <li>
+        <h4>Use callHandler send request to the Android side</h4>
+        <button type="button" id="setMenu">setMenu</button>
+        <button type="button" id="clearMenu">clearMenu</button>
+      </li>
+      <li>
+        <h4>Use registerHandler to receive events send from the Android side</h4>
+        <p>When the menu of the title bar is clicked, the corresponding click event will be received.</p>
+      </li>
+    </ul>
+    <script src="https://cdn.jsdelivr.net/npm/vconsole@3.2.0/dist/vconsole.min.js"></script>
+    <script src="app.js"></script>
+    <script type="text/javascript">
+      var vConsole = new VConsole()
+
+      // 输出更多日志
+      app.debugMode = true
+
+      document.addEventListener('appMenuSelected', function(data) {
+          alert("menu selected: " + JSON.stringify(data.detail))
+      }, false)
+
+      document.querySelector("#setMenu").onclick = function() {
+        app.call("setOptionsMenu", {
+          items: [
+            {
+              id: 1,
+              text: "share"
+            }
+          ]
+        }, function success(data) {
+          console.log("invoke success: ", data)
+        })
+      }
+
+      document.querySelector("#clearMenu").onclick = function() {
+        app.call("setOptionsMenu", {
+          items: []
+        }, function success(data) {
+          console.log("invoke success: ", data)
+        })
+      }
+
+      app.ready(function () {
+        app.call("setSubTitle", {
+          text: "current: " + Date()
+        }, function success(data) {
+          console.log("invoke success: ", data)
+        })
+      })
+    </script>
+  </body>
+</html>
