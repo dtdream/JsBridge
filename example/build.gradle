@@ -19,8 +19,9 @@ android {
 }
 
 dependencies {
-    // run publishToMavenLocal task first if not found
-    implementation 'com.github.dtdream:jsbridge:1.1.0'
+//    // run publishToMavenLocal task first if not found
+//    implementation 'com.github.dtdream:jsbridge:1.1.0'
+    implementation project(':jsbridge')
     implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation 'com.google.code.gson:gson:2.3.1'
 }
