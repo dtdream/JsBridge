@@ -1,5 +1,6 @@
 package com.github.lzyzsd.jsbridge.example;
 
+import android.annotation.SuppressLint;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -11,7 +12,6 @@ import android.webkit.WebView;
 import android.widget.Toast;
 
 import com.github.lzyzsd.jsbridge.BridgeHandler;
-import com.github.lzyzsd.jsbridge.BridgeWebView;
 import com.github.lzyzsd.jsbridge.BridgeWebViewClient;
 import com.github.lzyzsd.jsbridge.CallBackFunction;
 
@@ -22,6 +22,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressLint("SetJavaScriptEnabled")
 public class AppActivity extends AppCompatActivity {
 
     private static final String ANDROID_INTERFACE = "CallApp";
@@ -29,7 +30,7 @@ public class AppActivity extends AppCompatActivity {
 
     private List<JsMenuItem> optionsForJS = new ArrayList<>();
 
-    private BridgeWebView webView;
+    private WebView webView;
 
     private BridgeWebViewClient bridgeClient;
 
@@ -38,9 +39,10 @@ public class AppActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_app);
-        webView = (BridgeWebView) findViewById(R.id.webView);
+        webView = (WebView) findViewById(R.id.webView);
         bridgeClient = new BridgeWebViewClient();
 
+        webView.getSettings().setJavaScriptEnabled(true);
         webView.setWebViewClient(bridgeClient);
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
