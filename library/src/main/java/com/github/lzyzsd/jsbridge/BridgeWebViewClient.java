@@ -3,7 +3,10 @@ package com.github.lzyzsd.jsbridge;
 import android.os.Build;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.support.annotation.CallSuper;
+import android.support.annotation.MainThread;
 import android.text.TextUtils;
+import android.util.Log;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -21,7 +24,7 @@ import java.util.Map;
  * Created by bruce on 10/28/15.
  */
 public class BridgeWebViewClient extends WebViewClient {
-    private static final String toLoadJs = "WebViewJavascriptBridge.js";
+    private static final String BRIDGE_JS = "WebViewJavascriptBridge.js";
 
     private long uniqueId = 0;
 
@@ -29,14 +32,7 @@ public class BridgeWebViewClient extends WebViewClient {
     private Map<String, CallBackFunction> responseCallbacks = new HashMap<>();
     private List<Message> startupMessage = new ArrayList<>();
 
-    public List<Message> getStartupMessage() {
-        return startupMessage;
-    }
-
-    public void setStartupMessage(List<Message> startupMessage) {
-        this.startupMessage = startupMessage;
-    }
-
+    @CallSuper
     @Override
     public boolean shouldOverrideUrlLoading(WebView view, String url) {
         try {
@@ -46,20 +42,19 @@ public class BridgeWebViewClient extends WebViewClient {
         }
 
         if (url.startsWith(BridgeUtil.YY_RETURN_DATA)) { // 如果是返回数据
-            handlerReturnData(url);
+            handleReturnData(url);
             return true;
-        } else if (url.startsWith(BridgeUtil.YY_OVERRIDE_SCHEMA)) { //
+        } else if (url.startsWith(BridgeUtil.YY_OVERRIDE_SCHEMA)) {
             flushMessageQueue(view);
             return true;
         } else {
-            return this.onCustomShouldOverrideUrlLoading(url) || super.shouldOverrideUrlLoading(view, url);
+            return super.shouldOverrideUrlLoading(view, url);
         }
     }
 
-    // 增加shouldOverrideUrlLoading在api》=24时
+    @CallSuper
     @Override
     public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             String url = request.getUrl().toString();
             try {
@@ -68,13 +63,13 @@ public class BridgeWebViewClient extends WebViewClient {
                 ex.printStackTrace();
             }
             if (url.startsWith(BridgeUtil.YY_RETURN_DATA)) { // 如果是返回数据
-                handlerReturnData(url);
+                handleReturnData(url);
                 return true;
-            } else if (url.startsWith(BridgeUtil.YY_OVERRIDE_SCHEMA)) { //
+            } else if (url.startsWith(BridgeUtil.YY_OVERRIDE_SCHEMA)) {
                 flushMessageQueue(view);
                 return true;
             } else {
-                return this.onCustomShouldOverrideUrlLoading(url) || super.shouldOverrideUrlLoading(view, request);
+                return super.shouldOverrideUrlLoading(view, request);
             }
         } else {
             return super.shouldOverrideUrlLoading(view, request);
@@ -86,7 +81,7 @@ public class BridgeWebViewClient extends WebViewClient {
      *
      * @param url
      */
-    private void handlerReturnData(String url) {
+    private void handleReturnData(String url) {
         String functionName = BridgeUtil.getFunctionFromReturnUrl(url);
         CallBackFunction f = responseCallbacks.get(functionName);
         String data = BridgeUtil.getDataFromReturnUrl(url);
@@ -101,12 +96,13 @@ public class BridgeWebViewClient extends WebViewClient {
      */
     private void flushMessageQueue(final WebView view) {
         if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
-            loadUrl(view, BridgeUtil.JS_FETCH_QUEUE_FROM_JAVA, new CallBackFunction() {
+            view.loadUrl(BridgeUtil.JS_FETCH_QUEUE_FROM_JAVA);
+            responseCallbacks.put(BridgeUtil.parseFunctionName(BridgeUtil.JS_FETCH_QUEUE_FROM_JAVA), new CallBackFunction() {
 
                 @Override
                 public void onCallBack(String data) {
                     // deserializeMessage 反序列化消息
-                    List<Message> list = null;
+                    List<Message> list;
                     try {
                         list = Message.toArrayList(data);
                     } catch (Exception e) {
@@ -162,12 +158,6 @@ public class BridgeWebViewClient extends WebViewClient {
         }
     }
 
-    private void loadUrl(WebView view, String jsUrl, CallBackFunction returnCallback) {
-        view.loadUrl(jsUrl);
-        // 添加至 Map<String, CallBackFunction>
-        responseCallbacks.put(BridgeUtil.parseFunctionName(jsUrl), returnCallback);
-    }
-
     /**
      * list<message> != null 添加到消息集合否则分发消息
      *
@@ -186,6 +176,7 @@ public class BridgeWebViewClient extends WebViewClient {
      *
      * @param m Message
      */
+    @MainThread
     private void dispatchMessage(WebView view, Message m) {
         String messageJson = m.toJson();
         //escape special characters for json string  为json字符串转义特殊字符
@@ -199,6 +190,8 @@ public class BridgeWebViewClient extends WebViewClient {
         // 必须要找主线程才会将数据传递出去 --- 划重点
         if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
             view.loadUrl(javascriptCommand);
+        } else {
+            Log.e("BridgeWebViewClient", "请在主线程上回调接口");
         }
     }
 
@@ -207,19 +200,14 @@ public class BridgeWebViewClient extends WebViewClient {
         super.onPageFinished(view, url);
 
         // 加载初始化所需的 Js
-        BridgeUtil.webViewLoadLocalJs(view, toLoadJs);
+        BridgeUtil.webViewLoadLocalJs(view, BRIDGE_JS);
 
-        if (getStartupMessage() != null) {
-            for (Message m : getStartupMessage()) {
+        if (startupMessage != null) {
+            for (Message m : startupMessage) {
                 dispatchMessage(view, m);
             }
-            setStartupMessage(null);
+            startupMessage = null;
         }
-    }
-
-
-    protected boolean onCustomShouldOverrideUrlLoading(String url) {
-        return false;
     }
 
     /**
@@ -266,7 +254,6 @@ public class BridgeWebViewClient extends WebViewClient {
      */
     public void registerHandler(String handlerName, BridgeHandler handler) {
         if (handler != null) {
-            // 添加至 Map<String, BridgeHandler>
             messageHandlers.put(handlerName, handler);
         }
     }
@@ -274,7 +261,7 @@ public class BridgeWebViewClient extends WebViewClient {
     /**
      * unregister handler
      *
-     * @param handlerName
+     * @param handlerName handlerName
      */
     public void unregisterHandler(String handlerName) {
         if (handlerName != null) {
