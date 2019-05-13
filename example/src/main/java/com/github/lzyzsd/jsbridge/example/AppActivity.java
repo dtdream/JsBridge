@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import com.github.lzyzsd.jsbridge.BridgeHandler;
 import com.github.lzyzsd.jsbridge.BridgeWebView;
+import com.github.lzyzsd.jsbridge.BridgeWebViewClient;
 import com.github.lzyzsd.jsbridge.CallBackFunction;
 
 import org.json.JSONArray;
@@ -30,13 +31,17 @@ public class AppActivity extends AppCompatActivity {
 
     private BridgeWebView webView;
 
+    private BridgeWebViewClient bridgeClient;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_app);
         webView = (BridgeWebView) findViewById(R.id.webView);
+        bridgeClient = new BridgeWebViewClient();
 
+        webView.setWebViewClient(bridgeClient);
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onReceivedTitle(WebView view, String title) {
@@ -45,7 +50,7 @@ public class AppActivity extends AppCompatActivity {
             }
         });
 
-        webView.registerHandler(ANDROID_INTERFACE, new BridgeHandler() {
+        bridgeClient.registerHandler(ANDROID_INTERFACE, new BridgeHandler() {
             @Override
             public void handler(String s, CallBackFunction callBackFunction) {
                 try {
@@ -99,7 +104,7 @@ public class AppActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         try {
-            webView.callHandler(JS_MENU_INTERFACE, new JSONObject().put("selectedId", item.getItemId()).toString(), new CallBackFunction() {
+            bridgeClient.callHandler(webView, JS_MENU_INTERFACE, new JSONObject().put("selectedId", item.getItemId()).toString(), new CallBackFunction() {
                 @Override
                 public void onCallBack(String s) {
                     Toast.makeText(AppActivity.this, "receive js callback" + s, Toast.LENGTH_SHORT).show();
