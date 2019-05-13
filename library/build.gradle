@@ -21,11 +21,6 @@ android {
     }
 }
 
-dependencies {
-    // 为了使用 @CallSuper
-    compileOnly "com.android.support:support-annotations:27.1.1"
-}
-
 publishing {
     repositories {
         maven {

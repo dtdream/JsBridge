@@ -3,8 +3,6 @@ package com.github.lzyzsd.jsbridge;
 import android.os.Build;
 import android.os.Looper;
 import android.os.SystemClock;
-import android.support.annotation.CallSuper;
-import android.support.annotation.MainThread;
 import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.WebResourceRequest;
@@ -20,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 如果要自定义WebViewClient必须要集成此类
+ * 如果要自定义 WebViewClient 必须要继承此类
  * Created by bruce on 10/28/15.
  */
 public class BridgeWebViewClient extends WebViewClient {
@@ -32,7 +30,14 @@ public class BridgeWebViewClient extends WebViewClient {
     private Map<String, CallBackFunction> responseCallbacks = new HashMap<>();
     private List<Message> startupMessage = new ArrayList<>();
 
-    @CallSuper
+    /**
+     * overriding should invoke this method as well
+     * 重写该方法时一定要注意调用 super，否则失去 Bridge 能力
+     *
+     * @param view
+     * @param url
+     * @return
+     */
     @Override
     public boolean shouldOverrideUrlLoading(WebView view, String url) {
         try {
@@ -52,7 +57,14 @@ public class BridgeWebViewClient extends WebViewClient {
         }
     }
 
-    @CallSuper
+    /**
+     * overriding should invoke this method as well
+     * 重写该方法时一定要注意调用 super，否则失去 Bridge 能力
+     *
+     * @param view
+     * @param request
+     * @return
+     */
     @Override
     public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -176,7 +188,6 @@ public class BridgeWebViewClient extends WebViewClient {
      *
      * @param m Message
      */
-    @MainThread
     private void dispatchMessage(WebView view, Message m) {
         String messageJson = m.toJson();
         //escape special characters for json string  为json字符串转义特殊字符
