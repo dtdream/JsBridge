@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
+    compileSdkVersion 28
 
     defaultConfig {
         applicationId "com.github.lzyzsd.jsbridge.example"
-        minSdkVersion 11
-        targetSdkVersion 25
+        minSdkVersion 14
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
     }
@@ -21,6 +21,6 @@ android {
 dependencies {
     // run publishToMavenLocal task first if not found
     implementation 'com.github.dtdream:jsbridge:1.1.0-SNAPSHOT'
-    implementation 'com.android.support:appcompat-v7:25.3.1'
+    implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation 'com.google.code.gson:gson:2.3.1'
 }
