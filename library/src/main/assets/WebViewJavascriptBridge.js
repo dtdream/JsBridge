@@ -30,25 +30,6 @@
         bizMessagingIframe.style.display = 'none';
         doc.documentElement.appendChild(bizMessagingIframe);
     }
-    //set default messageHandler  初始化默认的消息线程
-    function init(messageHandler) {
-        if (WebViewJavascriptBridge._messageHandler) {
-            throw new Error('WebViewJavascriptBridge.init called twice');
-        }
-        WebViewJavascriptBridge._messageHandler = messageHandler;
-        var receivedMessages = receiveMessageQueue;
-        receiveMessageQueue = null;
-        for (var i = 0; i < receivedMessages.length; i++) {
-            _dispatchMessageFromNative(receivedMessages[i]);
-        }
-    }
-
-    // 发送
-    function send(data, responseCallback) {
-        _doSend({
-            data: data
-        }, responseCallback);
-    }
 
     // 注册线程 往数组里面添加值
     function registerHandler(handlerName, handler) {
@@ -98,7 +79,7 @@
                 responseCallback(message.responseData);
                 delete responseCallbacks[message.responseId];
             } else {
-                //直接发送
+                //Android 端尝试调用js端注册的接口，如果需要有回调，则 callbackId 则有值
                 if (message.callbackId) {
                     var callbackResponseId = message.callbackId;
                     responseCallback = function(responseData) {
@@ -109,12 +90,9 @@
                     };
                 }
 
-                var handler = WebViewJavascriptBridge._messageHandler;
-                if (message.handlerName) {
-                    handler = messageHandlers[message.handlerName];
-                }
-                //查找指定handler
                 try {
+                    //查找指定handler
+                    handler = messageHandlers[message.handlerName];
                     handler(message.data, responseCallback);
                 } catch (exception) {
                     if (typeof console != 'undefined') {
@@ -136,8 +114,6 @@
     }
 
     var WebViewJavascriptBridge = window.WebViewJavascriptBridge = {
-        init: init,
-        send: send,
         registerHandler: registerHandler,
         callHandler: callHandler,
         _fetchQueue: _fetchQueue,

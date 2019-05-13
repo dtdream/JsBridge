@@ -7,24 +7,22 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
-import java.net.URLEncoder;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @SuppressLint("SetJavaScriptEnabled")
-public class BridgeWebView extends WebView implements WebViewJavascriptBridge{
+public class BridgeWebView extends WebView {
 
 	private final String TAG = "BridgeWebView";
 
 	public static final String toLoadJs = "WebViewJavascriptBridge.js";
 	Map<String, CallBackFunction> responseCallbacks = new HashMap<String, CallBackFunction>();
 	Map<String, BridgeHandler> messageHandlers = new HashMap<String, BridgeHandler>();
-	BridgeHandler defaultHandler = new DefaultHandler();
 
 	private List<Message> startupMessage = new ArrayList<Message>();
 
@@ -51,16 +49,6 @@ public class BridgeWebView extends WebView implements WebViewJavascriptBridge{
 	public BridgeWebView(Context context) {
 		super(context);
 		init();
-	}
-
-	/**
-	 *
-	 * @param handler
-	 *            default handler,handle messages send by js without assigned handler name,
-     *            if js message has handler name, it will be handled by named handlers registered by native
-	 */
-	public void setDefaultHandler(BridgeHandler handler) {
-       this.defaultHandler = handler;
 	}
 
     private void init() {
@@ -90,16 +78,6 @@ public class BridgeWebView extends WebView implements WebViewJavascriptBridge{
 			responseCallbacks.remove(functionName);
 			return;
 		}
-	}
-
-	@Override
-	public void send(String data) {
-		send(data, null);
-	}
-
-	@Override
-	public void send(String data, CallBackFunction responseCallback) {
-		doSend(null, data, responseCallback);
 	}
 
     /**
@@ -208,11 +186,9 @@ public class BridgeWebView extends WebView implements WebViewJavascriptBridge{
 								};
 							}
 							// BridgeHandler执行
-							BridgeHandler handler;
+							BridgeHandler handler = null;
 							if (!TextUtils.isEmpty(m.getHandlerName())) {
 								handler = messageHandlers.get(m.getHandlerName());
-							} else {
-								handler = defaultHandler;
 							}
 							if (handler != null){
 								handler.handler(m.getData(), responseFunction);
