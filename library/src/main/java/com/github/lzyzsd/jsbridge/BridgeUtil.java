@@ -19,7 +19,6 @@ class BridgeUtil {
     final static String CALLBACK_ID_FORMAT = "JAVA_CB_%s";
     final static String JS_HANDLE_MESSAGE_FROM_JAVA = "javascript:WebViewJavascriptBridge._handleMessageFromNative('%s');";
     final static String JS_FETCH_QUEUE_FROM_JAVA = "javascript:WebViewJavascriptBridge._fetchQueue();";
-    public final static String JAVASCRIPT_STR = "javascript:";
 
     // 例子 javascript:WebViewJavascriptBridge._fetchQueue(); --> _fetchQueue
     static String parseFunctionName(String jsUrl) {
@@ -62,28 +61,13 @@ class BridgeUtil {
         return null;
     }
 
-
-    /**
-     * js 文件将注入为第一个script引用
-     *
-     * @param view WebView
-     * @param url  url
-     */
-    public static void webViewLoadJs(WebView view, String url) {
-        String js = "var newscript = document.createElement(\"script\");";
-        js += "newscript.src=\"" + url + "\";";
-        js += "document.scripts[0].parentNode.insertBefore(newscript,document.scripts[0]);";
-        view.loadUrl("javascript:" + js);
-    }
-
     /**
      * 这里只是加载lib包中assets中的 WebViewJavascriptBridge.js
      *
      * @param view webview
-     * @param path 路径
      */
-    static void webViewLoadLocalJs(WebView view, String path) {
-        String jsContent = assetFile2Str(view.getContext(), path);
+    static void loadBridgeJs(WebView view) {
+        String jsContent = assetFile2Str(view.getContext(), "WebViewJavascriptBridge.js");
         view.loadUrl("javascript:" + jsContent);
     }
 

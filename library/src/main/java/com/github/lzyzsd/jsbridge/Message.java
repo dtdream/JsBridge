@@ -1,11 +1,8 @@
 package com.github.lzyzsd.jsbridge;
 
-import android.text.TextUtils;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONTokener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,17 +69,11 @@ class Message {
     String toJson() {
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put(CALLBACK_ID_STR, getCallbackId());
-            jsonObject.put(DATA_STR, getData());
-            jsonObject.put(HANDLER_NAME_STR, getHandlerName());
-            String data = getResponseData();
-            if (TextUtils.isEmpty(data)) {
-                jsonObject.put(RESPONSE_DATA_STR, data);
-            } else {
-                jsonObject.put(RESPONSE_DATA_STR, new JSONTokener(data).nextValue());
-            }
-            jsonObject.put(RESPONSE_DATA_STR, getResponseData());
-            jsonObject.put(RESPONSE_ID_STR, getResponseId());
+            jsonObject.put(CALLBACK_ID_STR, callbackId);
+            jsonObject.put(DATA_STR, data);
+            jsonObject.put(HANDLER_NAME_STR, handlerName);
+            jsonObject.put(RESPONSE_DATA_STR, responseData);
+            jsonObject.put(RESPONSE_ID_STR, responseId);
             return jsonObject.toString();
         } catch (JSONException e) {
             e.printStackTrace();
@@ -90,7 +81,7 @@ class Message {
         return null;
     }
 
-    public static Message toObject(String jsonStr) {
+    static Message toObject(String jsonStr) {
         Message m = new Message();
         try {
             JSONObject jsonObject = new JSONObject(jsonStr);
@@ -106,8 +97,8 @@ class Message {
         return m;
     }
 
-    public static List<Message> toArrayList(String jsonStr) {
-        List<Message> list = new ArrayList<Message>();
+    static List<Message> toArrayList(String jsonStr) {
+        List<Message> list = new ArrayList<>();
         try {
             JSONArray jsonArray = new JSONArray(jsonStr);
             for (int i = 0; i < jsonArray.length(); i++) {

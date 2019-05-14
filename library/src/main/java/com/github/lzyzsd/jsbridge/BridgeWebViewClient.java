@@ -22,8 +22,6 @@ import java.util.Map;
  * Created by bruce on 10/28/15.
  */
 public class BridgeWebViewClient extends WebViewClient {
-    private static final String BRIDGE_JS = "WebViewJavascriptBridge.js";
-
     private long uniqueId = 0;
 
     private Map<String, BridgeHandler> messageHandlers = new HashMap<>();
@@ -124,17 +122,18 @@ public class BridgeWebViewClient extends WebViewClient {
                     if (list == null || list.size() == 0) {
                         return;
                     }
-                    for (int i = 0; i < list.size(); i++) {
-                        Message m = list.get(i);
+                    for (Message m : list) {
                         String responseId = m.getResponseId();
                         // 是否是response  CallBackFunction
                         if (!TextUtils.isEmpty(responseId)) {
                             CallBackFunction function = responseCallbacks.get(responseId);
                             String responseData = m.getResponseData();
-                            function.onCallBack(responseData);
-                            responseCallbacks.remove(responseId);
+                            if (function != null) {
+                                function.onCallBack(responseData);
+                                responseCallbacks.remove(responseId);
+                            }
                         } else {
-                            CallBackFunction responseFunction = null;
+                            CallBackFunction responseFunction;
                             // if had callbackId 如果有回调Id
                             final String callbackId = m.getCallbackId();
                             if (!TextUtils.isEmpty(callbackId)) {
@@ -155,7 +154,6 @@ public class BridgeWebViewClient extends WebViewClient {
                                     }
                                 };
                             }
-                            // BridgeHandler执行
                             BridgeHandler handler = null;
                             if (!TextUtils.isEmpty(m.getHandlerName())) {
                                 handler = messageHandlers.get(m.getHandlerName());
@@ -211,7 +209,7 @@ public class BridgeWebViewClient extends WebViewClient {
         super.onPageFinished(view, url);
 
         // 加载初始化所需的 Js
-        BridgeUtil.webViewLoadLocalJs(view, BRIDGE_JS);
+        BridgeUtil.loadBridgeJs(view);
 
         if (startupMessage != null) {
             for (Message m : startupMessage) {
