@@ -38,7 +38,7 @@ public class MessageTest {
     }
 
     @Test
-    public void noResponseData_formJson() {
+    public void noResponseData_formJson() throws Exception {
         String sample = "{\"data\":\"empty\",\"callbackId\":\"callbackId11\",\"handlerName\":\"testToJson\",\"responseId\":\"responseIdAA\"}";
         Message m = Message.formJson(sample);
         assertEquals("empty", m.getData());
@@ -49,7 +49,7 @@ public class MessageTest {
     }
 
     @Test
-    public void toArrayList() {
+    public void toArrayList() throws Exception {
         String sample = "[{\"data\":\"empty\",\"callbackId\":\"callbackId11\",\"handlerName\":\"testToJson\",\"responseId\":\"responseIdAA\"},{\"data\":\"empty2\",\"callbackId\":\"callbackId22\",\"handlerName\":\"testToJson\",\"responseId\":\"responseIdBB\"}]";
         List<Message> result = Message.toArrayList(sample);
         assertEquals(2, result.size());

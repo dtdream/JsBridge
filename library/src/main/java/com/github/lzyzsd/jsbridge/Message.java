@@ -81,32 +81,30 @@ class Message {
         return null;
     }
 
-    static Message formJson(String jsonStr) {
+    static Message formJson(String jsonStr) throws JSONException {
         Message m = new Message();
-        try {
-            JSONObject jsonObject = new JSONObject(jsonStr);
-            m.setHandlerName(jsonObject.optString(HANDLER_NAME_STR, null));
-            m.setCallbackId(jsonObject.optString(CALLBACK_ID_STR, null));
-            m.setResponseData(jsonObject.optString(RESPONSE_DATA_STR, null));
-            m.setResponseId(jsonObject.optString(RESPONSE_ID_STR, null));
-            m.setData(jsonObject.optString(DATA_STR, null));
-            return m;
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        JSONObject jsonObject = new JSONObject(jsonStr);
+        m.setHandlerName(jsonObject.optString(HANDLER_NAME_STR, null));
+        m.setCallbackId(jsonObject.optString(CALLBACK_ID_STR, null));
+        m.setResponseData(jsonObject.optString(RESPONSE_DATA_STR, null));
+        m.setResponseId(jsonObject.optString(RESPONSE_ID_STR, null));
+        m.setData(jsonObject.optString(DATA_STR, null));
         return m;
     }
 
-    static List<Message> toArrayList(String jsonStr) {
+    /**
+     * 按照最初的做法是不处理异常的，在 BridgeWebViewClient#flushMessageQueue(WebView) 中捕获异常
+     *
+     * @param jsonStr
+     * @return
+     * @throws JSONException
+     */
+    static List<Message> toArrayList(String jsonStr) throws JSONException {
         List<Message> list = new ArrayList<>();
-        try {
-            JSONArray jsonArray = new JSONArray(jsonStr);
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonObject = jsonArray.getJSONObject(i);
-                list.add(Message.formJson(jsonObject.toString()));
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
+        JSONArray jsonArray = new JSONArray(jsonStr);
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject jsonObject = jsonArray.getJSONObject(i);
+            list.add(Message.formJson(jsonObject.toString()));
         }
         return list;
     }
