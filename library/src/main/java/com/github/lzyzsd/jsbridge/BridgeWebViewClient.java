@@ -38,13 +38,12 @@ public class BridgeWebViewClient extends WebViewClient {
      */
     @Override
     public boolean shouldOverrideUrlLoading(WebView view, String url) {
-        try {
-            url = URLDecoder.decode(url, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-
         if (url.startsWith(BridgeUtil.YY_RETURN_DATA)) { // 如果是返回数据
+            try {
+                url = URLDecoder.decode(url, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
             handleReturnData(url);
             return true;
         } else if (url.startsWith(BridgeUtil.YY_OVERRIDE_SCHEMA)) {
@@ -67,12 +66,12 @@ public class BridgeWebViewClient extends WebViewClient {
     public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             String url = request.getUrl().toString();
-            try {
-                url = URLDecoder.decode(url, "UTF-8");
-            } catch (UnsupportedEncodingException ex) {
-                ex.printStackTrace();
-            }
             if (url.startsWith(BridgeUtil.YY_RETURN_DATA)) { // 如果是返回数据
+                try {
+                    url = URLDecoder.decode(url, "UTF-8");
+                } catch (UnsupportedEncodingException ex) {
+                    ex.printStackTrace();
+                }
                 handleReturnData(url);
                 return true;
             } else if (url.startsWith(BridgeUtil.YY_OVERRIDE_SCHEMA)) {
@@ -88,6 +87,8 @@ public class BridgeWebViewClient extends WebViewClient {
 
     /**
      * 获取到CallBackFunction data执行调用并且从数据集移除
+     * {@link #responseCallbacks}.get("_fetchQueue").onCallback
+     * then remove("_fetchQueue")
      *
      * @param url
      */
@@ -103,6 +104,7 @@ public class BridgeWebViewClient extends WebViewClient {
 
     /**
      * 刷新消息队列
+     * put ("_fetchQueue", callback) to {@link #responseCallbacks}
      */
     private void flushMessageQueue(final WebView view) {
         if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
