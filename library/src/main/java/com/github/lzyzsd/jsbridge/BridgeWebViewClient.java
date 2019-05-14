@@ -22,8 +22,6 @@ import java.util.Map;
  * Created by bruce on 10/28/15.
  */
 public class BridgeWebViewClient extends WebViewClient {
-    private static final String BRIDGE_JS = "WebViewJavascriptBridge.js";
-
     private long uniqueId = 0;
 
     private Map<String, BridgeHandler> messageHandlers = new HashMap<>();
@@ -40,13 +38,12 @@ public class BridgeWebViewClient extends WebViewClient {
      */
     @Override
     public boolean shouldOverrideUrlLoading(WebView view, String url) {
-        try {
-            url = URLDecoder.decode(url, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-
         if (url.startsWith(BridgeUtil.YY_RETURN_DATA)) { // 如果是返回数据
+            try {
+                url = URLDecoder.decode(url, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
             handleReturnData(url);
             return true;
         } else if (url.startsWith(BridgeUtil.YY_OVERRIDE_SCHEMA)) {
@@ -69,12 +66,12 @@ public class BridgeWebViewClient extends WebViewClient {
     public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             String url = request.getUrl().toString();
-            try {
-                url = URLDecoder.decode(url, "UTF-8");
-            } catch (UnsupportedEncodingException ex) {
-                ex.printStackTrace();
-            }
             if (url.startsWith(BridgeUtil.YY_RETURN_DATA)) { // 如果是返回数据
+                try {
+                    url = URLDecoder.decode(url, "UTF-8");
+                } catch (UnsupportedEncodingException ex) {
+                    ex.printStackTrace();
+                }
                 handleReturnData(url);
                 return true;
             } else if (url.startsWith(BridgeUtil.YY_OVERRIDE_SCHEMA)) {
@@ -90,6 +87,8 @@ public class BridgeWebViewClient extends WebViewClient {
 
     /**
      * 获取到CallBackFunction data执行调用并且从数据集移除
+     * {@link #responseCallbacks}.get("_fetchQueue").onCallback
+     * then remove("_fetchQueue")
      *
      * @param url
      */
@@ -105,6 +104,7 @@ public class BridgeWebViewClient extends WebViewClient {
 
     /**
      * 刷新消息队列
+     * put ("_fetchQueue", callback) to {@link #responseCallbacks}
      */
     private void flushMessageQueue(final WebView view) {
         if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
@@ -124,17 +124,18 @@ public class BridgeWebViewClient extends WebViewClient {
                     if (list == null || list.size() == 0) {
                         return;
                     }
-                    for (int i = 0; i < list.size(); i++) {
-                        Message m = list.get(i);
+                    for (Message m : list) {
                         String responseId = m.getResponseId();
                         // 是否是response  CallBackFunction
                         if (!TextUtils.isEmpty(responseId)) {
                             CallBackFunction function = responseCallbacks.get(responseId);
                             String responseData = m.getResponseData();
-                            function.onCallBack(responseData);
-                            responseCallbacks.remove(responseId);
+                            if (function != null) {
+                                function.onCallBack(responseData);
+                                responseCallbacks.remove(responseId);
+                            }
                         } else {
-                            CallBackFunction responseFunction = null;
+                            CallBackFunction responseFunction;
                             // if had callbackId 如果有回调Id
                             final String callbackId = m.getCallbackId();
                             if (!TextUtils.isEmpty(callbackId)) {
@@ -155,7 +156,6 @@ public class BridgeWebViewClient extends WebViewClient {
                                     }
                                 };
                             }
-                            // BridgeHandler执行
                             BridgeHandler handler = null;
                             if (!TextUtils.isEmpty(m.getHandlerName())) {
                                 handler = messageHandlers.get(m.getHandlerName());
@@ -211,7 +211,7 @@ public class BridgeWebViewClient extends WebViewClient {
         super.onPageFinished(view, url);
 
         // 加载初始化所需的 Js
-        BridgeUtil.webViewLoadLocalJs(view, BRIDGE_JS);
+        BridgeUtil.loadBridgeJs(view);
 
         if (startupMessage != null) {
             for (Message m : startupMessage) {
