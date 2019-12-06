@@ -136,7 +136,10 @@ public class BridgeWebViewClient extends WebViewClient {
                             }
                         } else {
                             CallBackFunction responseFunction;
-                            // if had callbackId 如果有回调Id
+                            /*
+                             * 默认情况下，回调Id每次由H5发起时创建，且只能用一次，
+                             * 为了多次重复用，这里用了一个trick，将callbackId为空作为一个“需要重复回调”的标志，由native特殊处理
+                             */
                             final String callbackId = m.getCallbackId();
                             if (!TextUtils.isEmpty(callbackId)) {
                                 responseFunction = new CallBackFunction() {
@@ -148,14 +151,7 @@ public class BridgeWebViewClient extends WebViewClient {
                                         queueMessage(view, responseMsg);
                                     }
                                 };
-                            } else {
-                                responseFunction = new CallBackFunction() {
-                                    @Override
-                                    public void onCallBack(String data) {
-                                        // do nothing
-                                    }
-                                };
-                            }
+                            } 
                             BridgeHandler handler = null;
                             if (!TextUtils.isEmpty(m.getHandlerName())) {
                                 handler = messageHandlers.get(m.getHandlerName());
