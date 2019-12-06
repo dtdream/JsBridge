@@ -135,7 +135,7 @@ public class BridgeWebViewClient extends WebViewClient {
                                 responseCallbacks.remove(responseId);
                             }
                         } else {
-                            CallBackFunction responseFunction;
+                            CallBackFunction responseFunction = null;
                             /*
                              * 默认情况下，回调Id每次由H5发起时创建，且只能用一次，
                              * 为了多次重复用，这里用了一个trick，将callbackId为空作为一个“需要重复回调”的标志，由native特殊处理
